@@ -1,7 +1,5 @@
 .section .text
 .global imprimeMapa
-.global imprimeCaractere
-.global imprimeCabecalho
 
 # Função principal que imprime o mapa da memória
 imprimeMapa:

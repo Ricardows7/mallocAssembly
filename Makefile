@@ -3,12 +3,12 @@ EXECUTAVEL = exemplo
 
 # Arquivos
 C_SOURCE = exemplo.c
-ASM_SOURCE = trab.asm
+ASM_SOURCE = trab_updated.asm
 ASM_OBJECT = trab.o
 
 # Compiladores
 CC = gcc
-ASM = nasm
+ASM = as
 
 # Flags
 CFLAGS = -Wall -g

@@ -1,6 +1,6 @@
 .section .bss
-    topoInicialHeap       resq 1       ; Topo atual da heap
-    inicioHeap     resq 1       ; Início da heap
+    topoInicialHeap       resq 1
+    inicioHeap     resq 1 
 
 .section .text
     global iniciaAlocador
@@ -110,19 +110,3 @@ achou_bloco:
 fim:
     popq %rbp
     ret
-imprimeMapa:
-    pushq %rbp
-    movq %rsp, %rbp
-
-    movq [inicioHeap], %rbx
-    loop:
-        cmpq %rbx, [topoInicialHeap]
-	jg fim
-	//printa # para cada caractere de cabecalho
-	movq //valor que indica o tamanho da area reservada para um registrador disponivel
-	//passa por cada valor reservado printando + se estiver sendo usado e - se nao
-	//atualiza %rbx
-	j loop
-    fim:
-	popq %rbp
-	ret
