@@ -1,0 +1,61 @@
+.section .bss
+    topoHeap	resq 1;		Reserva 8 bytes para o topo inicial da heap (64 bits)
+    inicioHeap      resq 1;	Reserva 8 bytes para o início da heap (64 bits)
+
+.section .text
+	global iniciaAlocador
+	global finalizaAlocador
+	extern brk;	Declara a syscall brk (externa ao programa)
+
+iniciaAlocador:
+    ; RDI será o argumento para o brk, colocando zero para obter o topo atual da heap
+	pushq %rbp	
+	xorq %rdi, %rdi            ; RDI = 0
+	movq $12, %rax             ; Número da syscall para brk no Linux
+	syscall                 ; Chamada ao sistema: brk(0)
+    
+    ; O endereço atual do topo da heap é retornado em RAX
+    movq %rax, [topoHeap]  ; Armazena o endereço inicial da heap em topoHeap
+    movq %rax, [inicioHeap]       ; Configura inicioHeap para apontar ao topo atual (início da heap)
+	popq %rbp
+	ret                         ; Retorna da função   
+finalizaAlocador:
+	pushq %rbp
+	movq $12, %rax
+	movq inicioHeap, %rdi
+	syscall
+
+	movq %rax, topoHeap
+	
+	popq %rbp
+	ret
+liberaMem:
+	pushq %rbp
+	movq $0, 16(%rbp)
+
+	movq $0, %rax
+	popq %rbp
+	ret
+alocaMem:
+	movq $0, %rdx
+	loop:
+		cmpq $0, inicioHeap(%rdx)
+		je segundo_teste
+	prep:
+		movq %rdx, %rbx
+		addq $16, %rbx
+		addq (inicioHeap(%rbx)), %rdx
+		jmp teste_fim
+	segundo_teste:
+		cmpq 16(%rbp), 8(inicioHeap(%rdx))
+		jge achou
+		jmp prep
+	achou:
+		movq $0, inicioHeap(%rdx)
+		movq inicioHeap(%rdx), %rax
+		jmp fim
+	teste_fim:
+		//aumentar a heap e retornar o valor
+	fim:
+		popq %rbp
+		ret
