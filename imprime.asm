@@ -20,15 +20,14 @@ loopMapa:
 	call	imprimeCabecalho		# Imprime os bytes do cabeçalho como '#'
 
 	# Verifica o estado do bloco
-	movq	(%rbx), %rax			# Carrega o tamanho do bloco (do cabeçalho)
+	movq	8(%rbx), %rax			# Carrega o tamanho do bloco (do cabeçalho)
+	movq	(%rbx), %r8b			# Carrega o primeiro byte da área de dados 
 	addq	$16, %rbx				# Move o ponteiro %rbx para a área de dados do bloco (16 bytes para cabeçalho)
 
-	movq	(%rbx), %r8b			# Carrega o primeiro byte da área de dados
+	movq 	%rax, %rsi				#Salva o tamanho do bloco
 	testb	%r8b, %r8b				# Testa o estado do bloco (0 = livre, 1 = ocupado)
-	jnz		blocoOcupado			# Se ocupado, pula para a lógica de blocos alocados
-
-blocoLivre:
-	movq	%rax, %rsi				# Copia o tamanho do bloco para %rsi
+	jnz		loopOcupado				# Se ocupado, pula para a lógica de blocos alocados
+	
 loopLivre:
 	cmpq	$0, %rsi				# Verifica se ainda há bytes no bloco
 	je		proximoBloco			# Se não, avança para o próximo bloco
@@ -39,8 +38,6 @@ loopLivre:
 	decq	%rsi					# Decrementa o contador de bytes restantes
 	jmp		loopLivre				# Continua imprimindo '-'
 
-blocoOcupado:
-	movq	%rax, %rsi				# Copia o tamanho do bloco para %rsi
 loopOcupado:
 	cmpq	$0, %rsi				# Verifica se ainda há bytes no bloco
 	je		proximoBloco			# Se não, avança para o próximo bloco

@@ -1,4 +1,4 @@
-# Nome do executável
+# Nome do executável final
 EXECUTAVEL = exemplo
 
 # Arquivos
@@ -8,11 +8,11 @@ ASM_OBJECT = trab.o
 
 # Compiladores
 CC = gcc
-ASM = as
+AS = as
 
 # Flags
 CFLAGS = -Wall -g
-ASMFLAGS = -f elf64
+ASFLAGS = --64
 
 # Alvo padrão
 all: $(EXECUTAVEL)
@@ -23,9 +23,8 @@ $(EXECUTAVEL): $(C_SOURCE) $(ASM_OBJECT)
 
 # Compilar o Assembly para objeto
 $(ASM_OBJECT): $(ASM_SOURCE)
-	$(ASM) $(ASMFLAGS) -o $@ $<
+	$(AS) $(ASFLAGS) -o $@ $<
 
 # Limpar os arquivos gerados
 clean:
 	rm -f $(EXECUTAVEL) $(ASM_OBJECT)
-
