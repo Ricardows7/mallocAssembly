@@ -11,8 +11,8 @@ CC = gcc
 AS = as
 
 # Flags
-CFLAGS = -Wall -Wextra -g
-ASFLAGS = --64
+CFLAGS = -Wall -Wextra -g -no-pie
+ASFLAGS = --64 -g
 
 # Alvo padrão
 all: $(EXECUTAVEL)

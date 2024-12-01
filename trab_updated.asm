@@ -1,3 +1,5 @@
+.section .note.GNU-stack, "", @progbits
+
 .section .bss
 	.lcomm topoInicialHeap, 8	#Topo da heap
     .lcomm inicioHeap, 8	#Base da heap
@@ -19,6 +21,9 @@ charOcupado: .byte '+'
 charCabecalho: .byte '#'
 
 iniciaAlocador:
+	#movq %rsp, %rax         # Copia %rsp para um registrador temporário
+    #andq $~0xF, %rsp        # Alinha %rsp a 16 bytes
+
     pushq %rbp
     movq %rsp, %rbp
 
