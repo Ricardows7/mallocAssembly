@@ -3,7 +3,6 @@
     .lcomm inicioHeap, 8	#Base da heap
 
 .section .text
-
 .global iniciaAlocador
 .global finalizaAlocador
 .global liberaMem

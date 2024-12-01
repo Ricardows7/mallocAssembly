@@ -11,7 +11,7 @@ CC = gcc
 AS = as
 
 # Flags
-CFLAGS = -Wall -g
+CFLAGS = -Wall -Wextra -g
 ASFLAGS = --64
 
 # Alvo padrão
