@@ -4,7 +4,6 @@
 	.lcomm topoInicialHeap, 8	#Topo da heap
     .lcomm inicioHeap, 8	#Base da heap
 
-
 .extern brk
 
 .section .data                                                                  
@@ -46,7 +45,7 @@ iniciaAlocador:
 
 	movq inicioHeap, %rdx
 	movq $1, (%rdx)
-	movq $0, 8(%rdx)
+	movq $16, 8(%rdx)
 
     popq %rbp
     ret
@@ -85,6 +84,8 @@ alocaMem:
 
     movq [inicioHeap], %rdx      # Ponteiro para o início dos blocos
     movq %rdi, %rcx              # Tamanho do bloco solicitado
+	movq %rcx, %r13                                                             
+	addq $16, %r13
     movq $-1, %rsi               # Endereço do bloco best fit
     movq $-1, %rbx               # Menor tamanho de bloco
 
@@ -94,11 +95,11 @@ loop:
 
     # Verifica se o bloco livre é grande o suficiente
     movq 8(%rdx), %rax           # Carrega o tamanho do bloco
-    cmpq %rcx, %rax
+    cmpq %r13, %rax
     jl proximo_bloco             # Se o bloco é menor que o solicitado, vai para o próximo
 
     # Se é um bloco adequado, verifica se é o menor bloco até agora (best fit)
-    cmpq %rbx, $-1              # Compara com o menor bloco encontrado até agora
+    cmpq $-1, %rbx 			# Compara com o menor bloco encontrado até agora
     jne verifica            # Se for maior ou igual ao bloco encontrado, ignora
 menor:
     movq %rax, %rbx              # Atualiza o tamanho do menor bloco encontrado
@@ -110,7 +111,7 @@ verifica:
 	jmp menor
 proximo_bloco:
     addq 8(%rdx), %rdx           # Avança para o próximo bloco
-    addq $16, %rdx               # Inclui espaço de controle
+    #addq $16, %rdx               # Inclui espaço de controle
     cmpq %rdx, [topoInicialHeap]        # Verifica se chegou ao final da lista
     jg loop                      # Continua o loop se não for o fim
 
@@ -119,8 +120,7 @@ proximo_bloco:
     jne achou_bloco              # Se encontrou, pula para achou_bloco
 
     # Se não encontrou um bloco livre, calcula o novo espaço em múltiplos de 4096 bytes
-    movq %rcx, %rax              # Move o tamanho solicitado para %rax
-	addq $16, %rax				 # Valor deve ser arredondado considerando o cabecalho
+    movq %r13, %rax              # Move o tamanho solicitado para %rax
     addq $4095, %rax             # Arredonda para o próximo múltiplo de 4096
     andq $-4096, %rax            # Zera os últimos 12 bits para obter múltiplo de 4096
 	movq %rax, %r12

@@ -12,6 +12,7 @@ int main (){
   b = (void *) alocaMem(10);
 
   liberaMem (a);
+ imprimeMapa();
   liberaMem (b);
   a = (void *)alocaMem(10);
 
