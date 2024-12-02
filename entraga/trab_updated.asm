@@ -12,6 +12,7 @@ caractere: .byte 0
 charLivre: .byte '-'
 charOcupado: .byte '+'
 charCabecalho: .byte '#'
+newline: .byte 0x0A
 
 .section .text                                                                                                                                                                     
 .global iniciaAlocador                                                          
@@ -217,7 +218,13 @@ verificaVazio:
     movq    $1, %rdi                # File descriptor: stdout                   
     syscall                                                                     
                                                                                 
-fimImp:                                                                            
+fimImp:
+	movq 	$1, %rax
+	movq 	$1, %rdi
+	lea 	newline(%rip), %rsi
+	movq 	$1, %rdx
+	syscall
+                                                                            
     popq    %rbp                    # Restaura o ponteiro base                  
     ret
                              # Retorna       
@@ -226,9 +233,9 @@ imprimeCaractere:
     pushq   %rbp                                                                
     movq    %rsp, %rbp                                                          
                                                                                 
-    movq    $1, %rax                # Syscall: write                            
-    movq    $1, %rdi                # File descriptor: stdout                   
-    lea     caractere(%rip), %rsi   # Endereço do caractere                     
+    movq    $1, %rax                # Syscall: write                                         
+    movq 	%rdi, %rsi			    # Endereço do caractere                     
+	movq    $1, %rdi                # File descriptor: stdout      
     movq    $1, %rdx                # Tamanho: 1 byte                           
     syscall                                                                     
                                                                                 
