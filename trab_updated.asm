@@ -157,55 +157,57 @@ imprimeMapa:
     pushq   %rbp                                                                
     movq    %rsp, %rbp                                                          
                                                                                 
-    movq    inicioHeap, %rbx        # Carrega o início da heap                  
+    movq    inicioHeap, %r14        # Carrega o início da heap                  
     movq    topoInicialHeap, %r10   # Carrega o topo inicial da heap            
                                                                                 
-    movq    $0, %rcx                # Flag para indicar se a heap está completamente liberada
-                                                                                
+    movq    $0, %r12  
+    movq 	$0, %r13  				# Flag para indicar se a heap está completamente liberada                                                                          
 loopMapa:                                                                       
-    cmpq    %rbx, %r10              # Verifica se chegou ao topo da heap        
+    cmpq    %r10, %r14              # Verifica se chegou ao topo da heap        
     jge     verificaVazio           # Sai do loop se %rbx >= %r10               
                                                                                 
     # Imprime o cabeçalho do nó                                                 
-    movq    %rbx, %rdi              # Endereço atual do bloco                   
+    movq    %r14, %rdi              # Endereço atual do bloco                   
     call    imprimeCabecalho        # Imprime os bytes do cabeçalho como '#'    
                                                                                 
     # Verifica o estado do bloco                                                
-    movq    8(%rbx), %rax           # Carrega o tamanho do bloco (do cabeçalho) 
-    movb    (%rbx), %r8b            # Carrega o primeiro byte da área de dados  
-    addq    $16, %rbx               # Move o ponteiro %rbx para a área de dados do bloco (16 bytes para cabeçalho)
-                                                                                
-    movq    %rax, %rsi              #Salva o tamanho do bloco                   
+    movq    8(%r14), %rax           # Carrega o tamanho do bloco (do cabeçalho)
+	subq 	$16, %rax 
+    movb    (%r14), %r8b            # Carrega o primeiro byte da área de dados  
+    addq    $16, %r14               # Move o ponteiro %rbx para a área de dados do bloco (16 bytes para cabeçalho)
+   
+	movq 	%rax, %r15				#Salva o tamanho do bloco
+                  
+	movq 	%rax, %rsi 
     testb   %r8b, %r8b              # Testa o estado do bloco (0 = livre, 1 = ocupado)
     jnz     loopOcupado             # Se ocupado, pula para a lógica de blocos alocados
                                                                                 
 loopLivre:                                                                      
-    cmpq    $0, %rsi                # Verifica se ainda há bytes no bloco       
+    cmpq    $0, %r15                # Verifica se ainda há bytes no bloco       
     je      proximoBloco            # Se não, avança para o próximo bloco       
                                                                                 
     movq    $charLivre, %rdi              # Define o caractere '-'                    
     call    imprimeCaractere        # Imprime o caractere                       
-    incq    %rbx                    # Avança para o próximo byte                
-    decq    %rsi                    # Decrementa o contador de bytes restantes  
+    incq    %r14                    # Avança para o próximo byte                
+    decq    %r15                    # Decrementa o contador de bytes restantes  
     jmp     loopLivre               # Continua imprimindo '-'                   
                                                                                 
 loopOcupado:                                                                    
-    cmpq    $0, %rsi                # Verifica se ainda há bytes no bloco       
+    cmpq    $0, %r15                # Verifica se ainda há bytes no bloco       
     je      proximoBloco            # Se não, avança para o próximo bloco       
                                                                                 
-    movq    $charOcupado, %rdi              # Define o caractere '+'                    
-    movq    $1, %rcx                # Marca que a heap não está vazia           
+    movq    $charOcupado, %rdi              # Define o caractere '+'                               
     call    imprimeCaractere        # Imprime o caractere                       
-    incq    %rbx                    # Avança para o próximo byte                
-    decq    %rsi                    # Decrementa o contador de bytes restantes  
+    incq    %r14                    # Avança para o próximo byte                
+    decq    %r15                    # Decrementa o contador de bytes restantes  
     jmp     loopOcupado             # Continua imprimindo '+'                   
                                                                                 
 proximoBloco:                                                                   
-    addq    %rax, %rbx              # Avança para o próximo bloco com base no tamanho
+    addq    %r15, %r14              # Avança para o próximo bloco com base no tamanho
     jmp     loopMapa                # Recomeça o loop                           
                                                                                 
 verificaVazio:                                                                  
-    cmpq    $0, %rcx                # Verifica se a heap está completamente vazia
+    cmpq    $0, %r13                # Verifica se a heap está completamente vazia
     jne     fimImp                	# Se não está, termina a função             
                                                                                 
     # Imprime "<vazio>"                                                         
@@ -238,14 +240,15 @@ imprimeCabecalho:
     pushq   %rbp                                                                
     movq    %rsp, %rbp                                                          
                                                                                 
-    movq    $16, %rcx               # Tamanho do cabeçalho (16 bytes)           
+    movq    $16, %r12               # Tamanho do cabeçalho (16 bytes)           
 cabecalhoLoop:                                                                  
-    cmpq    $0, %rcx                # Verifica se todos os bytes foram processados
+    cmpq    $0, %r12                # Verifica se todos os bytes foram processados
     je      fimCabecalho            # Se sim, sai do loop                       
                                                                                 
     movq    $charCabecalho, %rdi              # Caractere '#'                             
     call    imprimeCaractere        # Imprime o caractere                       
-    decq    %rcx                    # Decrementa o contador                     
+    decq    %r12                    # Decrementa o contador
+	movq 	$1, %r13                     
     jmp     cabecalhoLoop           # Repete para o próximo byte                
                                                                                 
 fimCabecalho:                                                                   
