@@ -36,6 +36,7 @@ iniciaAlocador:
     movq %rax, [inicioHeap]    # Armazena o endereço inicial no início da heap
 
 	addq $16, %rax
+	movq %rax, [topoInicialHeap]
 	movq %rax, %rdi
 	movq $12, %rax
 	syscall
@@ -43,7 +44,7 @@ iniciaAlocador:
 	cmpq %rdi, %rax
 	jne erro_brk
 
-	movq topoInicialHeap, %rdx
+	movq inicioHeap, %rdx
 	movq $1, (%rdx)
 	movq $0, 8(%rdx)
 
@@ -97,16 +98,21 @@ loop:
     jl proximo_bloco             # Se o bloco é menor que o solicitado, vai para o próximo
 
     # Se é um bloco adequado, verifica se é o menor bloco até agora (best fit)
-    cmpq %rbx, %rax              # Compara com o menor bloco encontrado até agora
-    jge proximo_bloco            # Se for maior ou igual ao bloco encontrado, ignora
+    cmpq %rbx, $-1              # Compara com o menor bloco encontrado até agora
+    jne verifica            # Se for maior ou igual ao bloco encontrado, ignora
+menor:
     movq %rax, %rbx              # Atualiza o tamanho do menor bloco encontrado
     movq %rdx, %rsi              # Atualiza o endereço do bloco best fit
-
+	jmp proximo_bloco
+verifica:
+	cmpq %rbx, %rax
+	jge proximo_bloco
+	jmp menor
 proximo_bloco:
-    addq 16(%rdx), %rdx           # Avança para o próximo bloco
+    addq 8(%rdx), %rdx           # Avança para o próximo bloco
     addq $16, %rdx               # Inclui espaço de controle
     cmpq %rdx, [topoInicialHeap]        # Verifica se chegou ao final da lista
-    jb loop                      # Continua o loop se não for o fim
+    jg loop                      # Continua o loop se não for o fim
 
     # Verifica se encontramos um bloco livre adequado (best fit)
     cmpq $-1, %rsi               # Se %rsi ainda for -1, não encontrou bloco adequado
@@ -114,21 +120,24 @@ proximo_bloco:
 
     # Se não encontrou um bloco livre, calcula o novo espaço em múltiplos de 4096 bytes
     movq %rcx, %rax              # Move o tamanho solicitado para %rax
+	addq $16, %rax				 # Valor deve ser arredondado considerando o cabecalho
     addq $4095, %rax             # Arredonda para o próximo múltiplo de 4096
     andq $-4096, %rax            # Zera os últimos 12 bits para obter múltiplo de 4096
+	movq %rax, %r12
 
     # Chama syscall brk para alocar o novo espaço arredondado
     movq $12, %rax
     movq [topoInicialHeap], %rdi
-    addq %rax, %rdi              # Incrementa o topo da heap com o espaço necessário
+    addq %r12, %rdi              # Incrementa o topo da heap com o espaço necessário
     syscall
 
+	movq [topoInicialHeap], %rsi
     movq %rax, [topoInicialHeap]        # Atualiza o topo da heap
 
     # Configura o novo bloco alocado
-    movq %rdx, %rsi              # Ponteiro do novo bloco
+    #movq %rdx, %rsi              # Ponteiro do novo bloco
     movq $1, (%rsi)              # Define o bloco como ocupado
-    movq %rcx, 8(%rsi)           # Armazena o tamanho solicitado
+    movq %r12, 8(%rsi)           # Armazena o tamanho solicitado
 
     # Retorna o endereço do bloco
     addq $16, %rsi
