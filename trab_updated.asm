@@ -4,12 +4,6 @@
 	.lcomm topoInicialHeap, 8	#Topo da heap
     .lcomm inicioHeap, 8	#Base da heap
 
-.section .text
-.global iniciaAlocador
-.global finalizaAlocador
-.global liberaMem
-.global alocaMem
-.global imprimeMapa
 
 .extern brk
 
@@ -19,6 +13,13 @@ caractere: .byte 0
 charLivre: .byte '-'
 charOcupado: .byte '+'
 charCabecalho: .byte '#'
+
+.section .text                                                                                                                                                                     
+.global iniciaAlocador                                                          
+.global finalizaAlocador                                                        
+.global liberaMem                                                               
+.global alocaMem                                                                
+.global imprimeMapa
 
 iniciaAlocador:
 	#movq %rsp, %rax         # Copia %rsp para um registrador temporário
@@ -34,8 +35,22 @@ iniciaAlocador:
     movq %rax, [topoInicialHeap]      # Armazena o endereço inicial no topo da heap
     movq %rax, [inicioHeap]    # Armazena o endereço inicial no início da heap
 
+	addq $16, %rax
+	movq %rax, %rdi
+	movq $12, %rax
+	syscall
+
+	cmpq %rdi, %rax
+	jne erro_brk
+
+	movq topoInicialHeap, %rdx
+	movq $1, (%rdx)
+	movq $0, 8(%rdx)
+
     popq %rbp
     ret
+erro_brk:
+	int3
 
 finalizaAlocador:
     pushq %rbp
