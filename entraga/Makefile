@@ -2,7 +2,7 @@
 EXECUTAVEL = exemplo
 
 # Arquivos
-C_SOURCE = exemplo.c
+C_SOURCE = avalia.c
 ASM_SOURCE = trab_updated.asm
 ASM_OBJECT = trab.o
 
