@@ -22,9 +22,6 @@ newline: .byte 0x0A
 .global imprimeMapa
 
 iniciaAlocador:
-	#movq %rsp, %rax         # Copia %rsp para um registrador temporário
-    #andq $~0xF, %rsp        # Alinha %rsp a 16 bytes
-
     pushq %rbp
     movq %rsp, %rbp
 
@@ -33,15 +30,15 @@ iniciaAlocador:
     syscall
 
     movq %rax, [topoInicialHeap]      # Armazena o endereço inicial no topo da heap
-    movq %rax, [inicioHeap]    # Armazena o endereço inicial no início da heap
+    movq %rax, [inicioHeap]    		  # Armazena o endereço inicial no início da heap
 
-	addq $16, %rax
+	addq $16, %rax					#espaco para guardar o primeiro cabecalho (tamanho 0 e não multiplo!)
 	movq %rax, [topoInicialHeap]
 	movq %rax, %rdi
 	movq $12, %rax
 	syscall
 
-	cmpq %rdi, %rax
+	cmpq %rdi, %rax					#verificar se a alocacao funcionou
 	jne erro_brk
 
 	movq inicioHeap, %rdx
@@ -61,7 +58,7 @@ finalizaAlocador:
     movq [inicioHeap], %rdi
     syscall
 
-    movq %rax, [topoInicialHeap] #?
+    movq %rax, [topoInicialHeap]
 
     popq %rbp
     ret
@@ -85,10 +82,10 @@ alocaMem:
 
     movq [inicioHeap], %rdx      # Ponteiro para o início dos blocos
     movq %rdi, %rcx              # Tamanho do bloco solicitado
-	movq %rcx, %r13                                                             
+	movq %rcx, %r13              #guardar tamanho solicitado em registrador nao afetado por syscall!                                                
 	addq $16, %r13
-    movq $-1, %rsi               # Endereço do bloco best fit
-    movq $-1, %rbx               # Menor tamanho de bloco
+    movq $-1, %rsi               # Endereço do bloco worst fit
+    movq $-1, %rbx               # Maior tamanho de bloco
 
 loop:
     cmpq $0, (%rdx)              # Verifica se o bloco está livre
@@ -99,20 +96,19 @@ loop:
     cmpq %r13, %rax
     jl proximo_bloco             # Se o bloco é menor que o solicitado, vai para o próximo
 
-    # Se é um bloco adequado, verifica se é o menor bloco até agora (best fit)
-    cmpq $-1, %rbx 			# Compara com o menor bloco encontrado até agora
-    jne verifica            # Se for maior ou igual ao bloco encontrado, ignora
-menor:
+    # Se é um bloco adequado, verifica se é o maoir bloco até agora (worst fit)
+    cmpq $-1, %rbx 			# Compara com o maior bloco encontrado até agora
+    jne verifica            # Se não achou bloco nenhum ate agora, já atribui
+maior:
     movq %rax, %rbx              # Atualiza o tamanho do menor bloco encontrado
-    movq %rdx, %rsi              # Atualiza o endereço do bloco best fit
+    movq %rdx, %rsi              # Atualiza o endereço do bloco worst fit
 	jmp proximo_bloco
 verifica:
-	cmpq %rbx, %rax
+	cmpq %rax, %rbx					# Se achou bloco maior, guarda o endereco e tamanho
 	jge proximo_bloco
-	jmp menor
+	jmp maior
 proximo_bloco:
     addq 8(%rdx), %rdx           # Avança para o próximo bloco
-    #addq $16, %rdx               # Inclui espaço de controle
     cmpq %rdx, [topoInicialHeap]        # Verifica se chegou ao final da lista
     jg loop                      # Continua o loop se não for o fim
 
@@ -120,10 +116,10 @@ proximo_bloco:
     cmpq $-1, %rsi               # Se %rsi ainda for -1, não encontrou bloco adequado
     jne achou_bloco              # Se encontrou, pula para achou_bloco
 
-    # Se não encontrou um bloco livre, calcula o novo espaço em múltiplos de 4096 bytes
+    # Se não encontrou um bloco livre, calcula o novo espaço em múltiplos de 32 bytes
     movq %r13, %rax              # Move o tamanho solicitado para %rax
-    addq $4095, %rax             # Arredonda para o próximo múltiplo de 4096
-    andq $-4096, %rax            # Zera os últimos 12 bits para obter múltiplo de 4096
+    addq $31, %rax             # Arredonda para o próximo múltiplo de 32
+    andq $-32, %rax            # Zera os últimos 5 bits para obter múltiplo de 32
 	movq %rax, %r12
 
     # Chama syscall brk para alocar o novo espaço arredondado
@@ -136,7 +132,6 @@ proximo_bloco:
     movq %rax, [topoInicialHeap]        # Atualiza o topo da heap
 
     # Configura o novo bloco alocado
-    #movq %rdx, %rsi              # Ponteiro do novo bloco
     movq $1, (%rsi)              # Define o bloco como ocupado
     movq %r12, 8(%rsi)           # Armazena o tamanho solicitado
 

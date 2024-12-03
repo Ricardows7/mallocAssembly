@@ -7,21 +7,25 @@ int main (){
   iniciaAlocador();               // Impressão esperada
   imprimeMapa();                  // <vazio>
 
-  a = (void *) alocaMem(5000);
-  //imprimeMapa();                  // ################**********
+  a = (void *) alocaMem(50);
+  imprimeMapa();                  // ################**********
   b = (void *) alocaMem(10);
-
+  imprimeMapa();
+  c = (void*) alocaMem (100);
   liberaMem (a);
  imprimeMapa();
   liberaMem (b);
-  a = (void *)alocaMem(10);
+imprimeMapa();
+  liberaMem(c);
+imprimeMapa();
+  b = (void *)alocaMem(10);
 
   
 
 
 
   imprimeMapa();                  // ################**********##############****
-  liberaMem(a);
+  liberaMem(b);
   imprimeMapa();                  // ################----------##############****
   //liberaMem(b);                   // ################----------------------------
                                   // ou
