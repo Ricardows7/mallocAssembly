@@ -22,9 +22,6 @@ newline: .byte 0x0A
 .global imprimeMapa
 
 iniciaAlocador:
-	#movq %rsp, %rax         # Copia %rsp para um registrador temporário
-    #andq $~0xF, %rsp        # Alinha %rsp a 16 bytes
-
     pushq %rbp
     movq %rsp, %rbp
 
@@ -112,7 +109,6 @@ verifica:
 	jmp menor
 proximo_bloco:
     addq 8(%rdx), %rdx           # Avança para o próximo bloco
-    #addq $16, %rdx               # Inclui espaço de controle
     cmpq %rdx, [topoInicialHeap]        # Verifica se chegou ao final da lista
     jg loop                      # Continua o loop se não for o fim
 
@@ -136,7 +132,6 @@ proximo_bloco:
     movq %rax, [topoInicialHeap]        # Atualiza o topo da heap
 
     # Configura o novo bloco alocado
-    #movq %rdx, %rsi              # Ponteiro do novo bloco
     movq $1, (%rsi)              # Define o bloco como ocupado
     movq %r12, 8(%rsi)           # Armazena o tamanho solicitado
 
